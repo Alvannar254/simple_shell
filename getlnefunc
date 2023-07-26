@@ -1,0 +1,66 @@
+#include <unistd.h>
+
+#define BUFFER_SIZE 1024
+
+char *custom_getline(void)
+{
+    static char buffer[BUFFER_SIZE];
+    static int current_position = 0;
+    static int buffer_size = 0;
+
+    char *line = NULL;
+    int i = current_position;
+
+    while (1) {
+        if (i >= buffer_size) {
+            buffer_size = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+            if (buffer_size <= 0) {
+                // End of input or error
+                return NULL;
+            }
+            current_position = 0;
+            i = 0;
+        }
+
+        if (buffer[i] == '\n') {
+            // Allocate memory for the line
+            line = malloc(i + 1);
+            if (line == NULL) {
+                // Handle allocation error
+                return NULL;
+            }
+
+            // Copy the line from the buffer and add the null terminator
+            strncpy(line, buffer, i);
+            line[i] = '\0';
+
+            // Update the current position in the buffer
+            current_position = i + 1;
+
+            return line;
+        }
+
+        i++;
+    }
+}
+
+int main(void)
+{
+    char *input;
+    while (1) {
+        write(STDOUT_FILENO, "$ ", 2);
+        input = custom_getline();
+        if (input == NULL) {
+            // End of input or error
+            break;
+        }
+
+        // Process the user input, execute commands, etc.
+        // ...
+
+        free(input);
+    }
+
+    return 0;
+}
+
