@@ -64,16 +64,25 @@ int main(void)
  */
 int execute_command(char *command)
 {
-	char *args[2]; /* Array to store command and NULL */
-	pid_t pid;     /* Declaration moved to the beginning of the function */
+	char *args[64]; /* Array to store command and arguments */
+	pid_t pid;      /* Declaration moved to the beginning of the function */
 
-	/* Tokenize the command */
-	args[0] = strtok(command, " ");
+	/* Tokenize the command and arguments */
+	char *token;
+	int arg_count = 0;
 
-	if (args[0] == NULL)
+	token = strtok(command, " ");
+	while (token != NULL)
+	{
+		args[arg_count] = token;
+		arg_count++;
+		token = strtok(NULL, " ");
+	}
+
+	if (arg_count == 0)
 		return (0); /* No command found */
 
-	args[1] = NULL; /* NULL-terminate the args array */
+	args[arg_count] = NULL; /* NULL-terminate the args array */
 
 	/* Fork a child process to execute the command */
 	pid = fork();

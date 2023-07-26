@@ -4,9 +4,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 /* Function prototypes */
 int execute_command(char *command);
+char *locate_command(char *command);
 
 /* Function descriptions */
 
@@ -48,7 +50,8 @@ int main(void)
 			command[characters - 1] = '\0';
 
 		/* Execute the command */
-		execute_command(command);
+		if (execute_command(command) == -1)
+			printf("%s: command not found\n", command);
 
 		free(command);
 	}
@@ -60,20 +63,34 @@ int main(void)
  * execute_command - Execute the given command
  * @command: The command to be executed
  *
- * Return: 1 on success, 0 on failure
+ * Return: 0 on success, -1 on failure
  */
 int execute_command(char *command)
 {
-	char *args[2]; /* Array to store command and NULL */
-	pid_t pid;     /* Declaration moved to the beginning of the function */
+	char *args[64]; /* Array to store command and arguments */
+	pid_t pid;      /* Declaration moved to the beginning of the function */
+	char *full_path_command;
 
-	/* Tokenize the command */
-	args[0] = strtok(command, " ");
+	/* Tokenize the command and arguments */
+	char *token;
+	int arg_count = 0;
 
-	if (args[0] == NULL)
+	token = strtok(command, " ");
+	while (token != NULL)
+	{
+		args[arg_count] = token;
+		arg_count++;
+		token = strtok(NULL, " ");
+	}
+
+	if (arg_count == 0)
 		return (0); /* No command found */
 
-	args[1] = NULL; /* NULL-terminate the args array */
+	args[arg_count] = NULL; /* NULL-terminate the args array */
+
+	full_path_command = locate_command(args[0]);
+	if (!full_path_command)
+		return (-1); /* Command not found */
 
 	/* Fork a child process to execute the command */
 	pid = fork();
@@ -86,9 +103,10 @@ int execute_command(char *command)
 	else if (pid == 0)
 	{
 		/* Child process */
-		if (execve(args[0], args, NULL) == -1)
+		if (execve(full_path_command, args, NULL) == -1)
 		{
 			perror("execve");
+			free(full_path_command);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -98,6 +116,34 @@ int execute_command(char *command)
 		wait(NULL); /* Wait for the child process to complete */
 	}
 
+	free(full_path_command);
 	return (1);
+}
+
+/**
+ * locate_command - Locate a command in the directories specified by the PATH
+ * @command: The command to be located
+ *
+ * Return: The full path to the command, or NULL if the command cannot be found
+ */
+char *locate_command(char *command)
+{
+	struct stat st;
+	char *PATH = getenv("PATH");
+	char *dir = strtok(PATH, ":");
+	char *full_path_command = malloc(256); /* Calculate size needed */
+
+	while (dir)
+	{
+		sprintf(full_path_command, "%s/%s", dir, command);
+
+		if (stat(full_path_command, &st) == 0)
+			return (full_path_command);
+
+		dir = strtok(NULL, ":");
+	}
+
+	free(full_path_command);
+	return (NULL);
 }
 

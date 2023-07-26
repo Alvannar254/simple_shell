@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 
 /* Function prototypes */
@@ -47,6 +46,14 @@ int main(void)
 		if (characters > 0 && command[characters - 1] == '\n')
 			command[characters - 1] = '\0';
 
+		/* Check if the command is "exit" */
+		if (strcmp(command, "exit") == 0)
+		{
+			free(command);
+			putchar('\n');
+			break;
+		}
+
 		/* Execute the command */
 		execute_command(command);
 
@@ -64,31 +71,42 @@ int main(void)
  */
 int execute_command(char *command)
 {
-	char *args[2]; /* Array to store command and NULL */
-	pid_t pid;     /* Declaration moved to the beginning of the function */
+	pid_t pid;
+	char *path = "/bin/";
+	char *full_command = (char *)malloc(strlen(path) + strlen(command) + 1);
 
-	/* Tokenize the command */
-	args[0] = strtok(command, " ");
+	if (full_command == NULL)
+	{
+		perror("malloc");
+		return (0);
+	}
 
-	if (args[0] == NULL)
-		return (0); /* No command found */
+	/* Combine the path and command to form the full command path */
+	strcpy(full_command, path);
+	strcat(full_command, command);
 
-	args[1] = NULL; /* NULL-terminate the args array */
-
-	/* Fork a child process to execute the command */
+	/* Fork to create a child process */
 	pid = fork();
 
 	if (pid == -1)
 	{
 		perror("fork");
+		free(full_command);
 		return (0);
 	}
 	else if (pid == 0)
 	{
 		/* Child process */
+		char *args[2];
+
+		args[0] = full_command;
+
+		args[1] = NULL;
+
 		if (execve(args[0], args, NULL) == -1)
 		{
-			perror("execve");
+			perror("execve"); /* Execve returns only on error */
+			free(full_command);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -98,6 +116,7 @@ int execute_command(char *command)
 		wait(NULL); /* Wait for the child process to complete */
 	}
 
+	free(full_command);
 	return (1);
 }
 
