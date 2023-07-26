@@ -1,11 +1,9 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-/* Empty main.h file for Task 0 */
-
-int execute_command(char *command);
-char *locate_command(char *command);
-void print_environment(void)
+extern char **environ;
+char *find_path(char *cmd);
+int execute_command(char *line);
 
 #endif /* MAIN_H */
 
