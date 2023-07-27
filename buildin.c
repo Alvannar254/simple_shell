@@ -24,7 +24,6 @@ int exitt(char **args)
  */
 int env(char **args __attribute__((unused)))
 {
-	extern char **environ;
 	int i = 0;
 
 	while (environ[i] != NULL)

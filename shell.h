@@ -32,7 +32,7 @@ int env(char **args);
 list_t *linkpath(void);
 char *_which(char *cmd, list_t *head);
 char *_getenv(const char *name);
-void add_node_end(list_t **head, char *str);
+list_t *add_node_end(list_t **head, char *str);
 char *concat_all(char *str1, char *str2, char *str3);
 
 #endif /* SHELL_H */
