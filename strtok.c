@@ -1,4 +1,3 @@
-/* Import required libraries */
 #include <stdlib.h>
 #include "shell.h"
 #include "main.h"
@@ -12,16 +11,86 @@
  */
 int isDelim(char c, char *delim)
 {
-	/* Iterate through delimiters */
 	while (*delim)
 	{
-		/* If character is a delimiter, return 1 */
 		if (c == *delim)
 			return (1);
 		delim++;
 	}
-	/* If character is not a delimiter, return 0 */
 	return (0);
+}
+
+/**
+ * skip_leading_delims - Skips leading delimiters in a string
+ * @ptr: Pointer to the string
+ * @delim: Delimiters
+ *
+ * Return: Pointer to the string after skipping leading delimiters
+ */
+char *skip_leading_delims(char *ptr, char *delim)
+{
+	while (*ptr && isDelim(*ptr, delim))
+		ptr++;
+	return (ptr);
+}
+
+/**
+ * handle_quote_token - Handles tokenization when a quote is encountered
+ * @ptr: Pointer to the string
+ * @savePtr: Stores the string state across calls
+ *
+ * Return: Duplicated string of the token if quote is encountered.
+ */
+char *handle_quote_token(char *ptr, char **savePtr)
+{
+	char *modifier = NULL;
+
+	if (*ptr == '\'')
+	{
+		ptr++;
+		modifier = _strchr(ptr, '\'');
+		if (!modifier)
+		{
+			_printf("no matching quote found!\n");
+			exit(-1);
+		}
+		*modifier = '\0';
+		*savePtr = modifier + 1;
+		return (_strdup(ptr));
+	}
+	return (NULL);
+}
+
+/**
+ * tokenize_until_delim - Tokenizes until delimiter.
+ * @ptr: Pointer to the string
+ * @delim: Delimiters
+ * @savePtr: Stores the string state across calls
+ *
+ * Return: Duplicated string of the token
+ */
+char *tokenize_until_delim(char *ptr, char *delim, char **savePtr)
+{
+	char *modifier = ptr;
+	int quoteFound = 0;
+
+	while (*modifier)
+	{
+		if (*modifier == '\'')
+			quoteFound = 1;
+		if (isDelim(*modifier, delim) && quoteFound == 0)
+			break;
+		modifier++;
+	}
+
+	if (*modifier == '\0')
+		*savePtr = modifier;
+	else
+		*savePtr = modifier + 1;
+
+	*modifier = '\0';
+
+	return (_strdup(ptr));
 }
 
 /**
@@ -34,67 +103,31 @@ int isDelim(char c, char *delim)
  */
 char *_strtok(char *str, char *delim, char **savePtr)
 {
-	char *ptr, *modifier, *end;
-	int quoteFound = 0;
+	char *ptr, *end;
+	char *quoteToken = NULL;
 
-	/* Initiate pointer based on the savePtr state */
 	if (*savePtr)
 		ptr = *savePtr;
 	else
 		ptr = str;
 
-	/* End pointer is set to end of string */
 	end = ptr;
 	while (*end)
 		end++;
 
-	/* Skip leading delimiters */
-	while (*ptr && isDelim(*ptr, delim))
-		ptr++;
+	ptr = skip_leading_delims(ptr, delim);
 
-	modifier = ptr;
-
-	/* If the pointer is at end of string, return NULL */
 	if (*ptr == '\0')
 	{
 		return (NULL);
 	}
 
-	/* If a quote is encountered, tokenize until the next quote */
-	if (*ptr == '\'')
+	quoteToken = handle_quote_token(ptr, savePtr);
+	if (quoteToken != NULL)
 	{
-		ptr++;
-		modifier = _strchr(ptr, '\'');
-		/* If there's no closing quote, output error and exit */
-		if (!modifier)
-		{
-			_printf("no matching quote found!\n");
-			exit(-1);
-		}
-		*modifier = '\0';
-		*savePtr = modifier + 1;
-		return (_strdup(ptr));
+		return (quoteToken);
 	}
 
-	/* Tokenize until delimiter, skipping anything inside quotes */
-	while (*modifier)
-	{
-		if (*modifier == '\'')
-			quoteFound = 1;
-		if (isDelim(*modifier, delim) && quoteFound == 0)
-			break;
-		modifier++;
-	}
-
-	/* Set savePtr to next token or to end of string */
-	if (*modifier == '\0')
-		*savePtr = modifier;
-	else
-		*savePtr = modifier + 1;
-
-	*modifier = '\0';
-
-	/* Return a duplicate of the token */
-	return (_strdup(ptr));
+	return (tokenize_until_delim(ptr, delim, savePtr));
 }
 

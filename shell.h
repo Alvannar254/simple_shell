@@ -98,6 +98,18 @@ void _myExit(param_t *params);
 /* Handles cd function */
 void _cd(param_t *params);
 
+/* Handles errors for the _cd function */
+void handle_cd_error(param_t *params, char *target);
+
+/* Handles '-' argument for the _cd function */
+char *handle_cd_dash(param_t *params);
+
+/* Handles directory argument for the _cd function */
+char *handle_cd_arg(param_t *params);
+
+/* Updates the PWD and OLDPWD environment variables */
+void update_pwd(param_t *params, char **tmpArgs, char **originArgs);
+
 /* Handles alias function */
 void _alias(param_t *params);
 
