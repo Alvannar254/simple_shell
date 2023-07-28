@@ -1,6 +1,8 @@
 .\" Man page for simple shell.
+
 .\" Contact lanton254k@gmail.com to correct errors or typos.
-.TH man 8 28/06/2023" "Simple Shell man page"
+.TH man 8 28/07/2023" "Simple Shell man page"
+
 .SH NAME
 .B simple_shell
 - Man For Simple Shell Project for ALX SE School.
@@ -12,6 +14,7 @@ it is a linux command lines interpreter as simple as this
 .SH OPTIONS
 Options are specific to and interpreted by the program that the command calls. By convention, options are separate arguments that follow the name of the comman
 .SH COMMAND
+
 cp: copy a file to another place.
 rm: Delete files
 sh, bash: Interpreters of commands.
@@ -30,10 +33,14 @@ chmod: Change the permissions of a file.
 ln: Create a link between files or folders.
 mv: Move a file.
 chown: Change the user of a file.
+
+
 .SH SEE ALSO
 useradd(8), passwd(5), nuseradd.debian(8)
 .SH BUGS
+
 No known bugs.
+
 .SH AUTHOR
 Lydia Andenga andengalydia@gmail.com
 Nganga Alvin lanton254k@gmail.com
